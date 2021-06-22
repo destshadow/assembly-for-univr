@@ -40,7 +40,7 @@ algo:
 controllo_numerico:
         cmpb $48, (%esi)
         jge controllo       #giusto
-        jl errore
+        jl #->controllo segni
 
 torna:  #ciclo per prendere tutto il numero
         movl (%esi), %eax
