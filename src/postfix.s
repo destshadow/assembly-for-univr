@@ -15,47 +15,46 @@ postfix:
 algo:
 
     conta:
+    #fare la pop di un numero prima di riceverne un altro senno nello stack si hanno 3 numeri 
+        #se all'inzio abbiamo solo numeri è utile controllare anche addizione, moltiplicazione e divisione?
         #controllo addizione
         cmpb $43, (%esi)        #+
         jz addizione
 
         #controllo sottrazione
-        cmpb $45, (%esi)        #-
-        #TODO: controllare se il carattere dopo è un numero oppure no
-        #fare qaulcosa dopo la compare oppure trasferirte il tutto in ustampan atra label
-        inc (%esi)
-        cmpb $32, (%esi)        #spazio
+        cmpb $45, (%esi)        #- 
         jz negativo
-        jnz sottrazione
-
+        
+        #fare qaulcosa dopo la compare oppure trasferirte il tutto in ustampan atra label
+        
         #controllo moltiplicazione
         cmpb $42, (%esi)        #*
         jz moltiplicazione
 
         #controllo divisione
-        cmpb $48, (%esi)        #/
+        cmpb $47, (%esi)        #/
         #
         jz divisione
 
 
         #controllo se è un numero
+controllo_numerico:
         cmpb $48, (%esi)
         jge controllo       #giusto
         jl errore
 
-        torna:
+torna:  #ciclo per prendere tutto il numero
         movl (%esi), %eax
+
         #algo da completare
 
-    torna2:
-        cmpb $0, (%esi)
-        jz errore
+torna2:
         
         cmpb $32, (%esi)        #spazio
         jnz conta2
         #se è uno spazio incremento esi e vado al carattere successivo(?)
 
-    conta2:
+conta2:
         mul 10
         add (%esi), %eax
 
@@ -69,13 +68,9 @@ cmpb $0, (%esi)
 jnz exit
 
 controllo:
-    cmpb $32, (%esi)
-    jz torna2
     cmpb $57, (%esi)
-    #TODO:controllo se è uno spazio se lo è torno a torna2
-    jg errore
     jle torna
-
+    jg errore
 
 addizione:
     #da fare la pop prima
@@ -88,14 +83,18 @@ sottrazione:
 
 moltiplicazione:
 
-
+    jmp torna
 divisione:
+
+    jmp torna
 
 
 negativo:
-    movl (%esi), %eax
-    mul -1
-    #da saltare indietro
+    inc %esi
+    cmpb $32, (%esi)        #spazio
+    jz sottrazione
+    jnz controllo_numerico
+
 
 errore:
 #uso questo metodo per inserire nell'output
@@ -117,7 +116,7 @@ errore:
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
 
 exit:#da sistemare
-    movl %eax, (%edi)   #scrivo il risultato sul file di output
+    movl %eax, (%edi)   #scrivo il risultato sul file di output !!!ma come stringa !! da sistemare
     inc %edi
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
 
