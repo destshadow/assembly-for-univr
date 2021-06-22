@@ -36,7 +36,6 @@ algo:
         #
         jz divisione
 
-
         #controllo se è un numero
 controllo_numerico:
         cmpb $48, (%esi)
