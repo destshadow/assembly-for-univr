@@ -25,4 +25,4 @@ all2:
 run: clear all exec
 
 all3:
-	gcc -m32 main.c src/postfix.s -o test/postfix
+	gcc -m32 -g main.c src/postfix.s -o test/postfix

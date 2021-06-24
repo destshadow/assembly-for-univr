@@ -23,6 +23,7 @@ main_loop:
     inc %esi
     cmpb $32, (%esi)        #spazio
     jnz spazio
+    jz main_loop
 
     push %eax
     
@@ -36,6 +37,7 @@ jnz main_loop
     inc %esi
     cmpb $32, (%esi)        #spazio
     jnz spazio
+    jz main_loop
 
     neg %eax
     push %eax
@@ -69,6 +71,8 @@ segno:
 
     cmpb $47, (%esi)        #/
     jz divisione
+
+    #fare un controllo in piu per vedere se è uno spazio così ci togliamo tutti i dubbi così controllo anche se ci sono caratteri strani
 
     jmp errore #no senno da errori orrendi
 
