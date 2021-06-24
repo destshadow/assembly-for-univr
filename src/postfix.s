@@ -5,98 +5,118 @@ postfix:
     
     movl 4(%esp), %esi      #primo puntatore frase in input; source index
     movl 8(%esp), %edi      #secondo puntatore frase in output; destination index
-    #%esi = indirizzo
-    #(%esi) = carattere
 
     cmpb $0, (%esi)         #devo comparare il byte, prima va l'immediato e poi l'indirizzamento a memoria
-    jnz algo
+    jnz main_loop
     jz errore
 
-algo:
+main_loop:
 
-    conta:
-    #fare la pop di un numero prima di riceverne un altro senno nello stack si hanno 3 numeri 
-        #se all'inzio abbiamo solo numeri è utile controllare anche addizione, moltiplicazione e divisione?
-        #controllo addizione
-        cmpb $43, (%esi)        #+
-        jz addizione
+    cmpb $48, (%esi)
+    jge controllo       
+    jl segno
 
-        #controllo sottrazione
-        cmpb $45, (%esi)        #- 
-        jz negativo
-        
-        #fare qaulcosa dopo la compare oppure trasferirte il tutto in ustampan atra label
-        
-        #controllo moltiplicazione
-        cmpb $42, (%esi)        #*
-        jz moltiplicazione
+    torno:
 
-        #controllo divisione
-        cmpb $47, (%esi)        #/
-        #
-        jz divisione
+    movl (%esi), %eax
 
-        #controllo se è un numero
-controllo_numerico:
-        cmpb $48, (%esi)
-        jge controllo       #giusto
-        jl #->controllo segni
+    inc %esi
+    cmpb $32, (%esi)        #spazio
+    jnz spazio
 
-torna:  #ciclo per prendere tutto il numero
-        movl (%esi), %eax
-
-        #algo da completare
-
-torna2:
-        
-        cmpb $32, (%esi)        #spazio
-        jnz conta2
-        #se è uno spazio incremento esi e vado al carattere successivo(?)
-
-conta2:
-        mul 10
-        add (%esi), %eax
-
-        inc %esi
-        cmpb $32, (%esi)
-        jnz conta2
-        #qui devo controllare se la nuova cifra è ancora un numero valido senno è errore
-
-inc %esi
+    push %eax
+    
 cmpb $0, (%esi)
-jnz exit
+jz fine
+jnz main_loop
+
+    torno_negato:
+    movl (%esi), %eax
+
+    inc %esi
+    cmpb $32, (%esi)        #spazio
+    jnz spazio
+
+    neg %eax
+    push %eax
+
+cmpb $0, (%esi)
+jz fine
+jnz main_loop
+#fine main loop
 
 controllo:
     cmpb $57, (%esi)
-    jle torna
+    jle torno
     jg errore
 
+
+controllo_negato:
+    cmpb $57, (%esi)
+    jle torno_negato
+    jg errore
+
+
+segno:
+    cmpb $43, (%esi)        #+
+    jz addizione
+
+    cmpb $45, (%esi)        #- 
+    jz negativo
+
+    cmpb $42, (%esi)        #*
+    jz moltiplicazione
+
+    cmpb $47, (%esi)        #/
+    jz divisione
+
+    #jnz errore no senno da errori orrendi
+
 addizione:
-    #da fare la pop prima
+    popl %ebx 
+    popl %eax
     addl %ebx, %eax
-    jmp torna
+    push %eax
+    jmp main_loop
 
 sottrazione:
+    popl %ebx
+    popl %eax
     subl %ebx, %eax
-    jmp torna
+    pushl %eax
+    jmp main_loop
 
 moltiplicazione:
+    movl $0 , %edx
+    popl %ebx
+    popl %eax
+    imul %ebx               #eax moltiplicato con il regitro datogli
+    pushl %eax
+    jmp main_loop
 
-    jmp torna
 divisione:
-
-    jmp torna
-
+    movl $0 , %edx
+    popl %ebx 
+    popl %eax
+    idiv %ebx 
+    pushl %eax
+    jmp main_loop
 
 negativo:
     inc %esi
-    cmpb $32, (%esi)        #spazio
-    jz sottrazione
-    jnz controllo_numerico
+    cmpb $32, (%esi)
+    je sottrazione       
+    jmp torno_negato
 
+
+spazio:
+    imul $10, %eax       #$10?? me sa che va con $
+    inc %esi
+    cmpb $32, (%esi)        #spazio
+    jnz spazio
+    jz main_loop
 
 errore:
-#uso questo metodo per inserire nell'output
     movl $73, (%edi)        #scrivo I in edi
     inc %edi                #incremento di 1 edi
     movl $110, (%edi)        #scrivo n in edi
@@ -113,10 +133,31 @@ errore:
 
     inc %edi
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
+    
+fine:
 
-exit:#da sistemare
-    movl %eax, (%edi)   #scrivo il risultato sul file di output !!!ma come stringa !! da sistemare
+    #salvataggio variabili su edi
+
+    cmp $10, %eax
+    jge dividi
+
+    movl %eax, (%edi)
     inc %edi
+    jmp tappo
+
+
+dividi:
+    movl $0, %edx
+    movl $10, %ebx
+
+    divl %ebx               #divido per ebx (10) il numero ottenuto
+    movl %edx, (%edi)       #salvo il resto della divisione
+    inc %edi
+    jmp fine
+
+tappo:
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
 
-    ret
+
+ret #fine del programma
+
