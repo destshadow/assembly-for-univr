@@ -70,13 +70,13 @@ segno:
     cmpb $47, (%esi)        #/
     jz divisione
 
-    #jnz errore no senno da errori orrendi
+    jmp errore #no senno da errori orrendi
 
 addizione:
     popl %ebx 
     popl %eax
     addl %ebx, %eax
-    push %eax
+    pushl %eax
     jmp main_loop
 
 sottrazione:
@@ -133,6 +133,7 @@ errore:
 
     inc %edi
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
+    jmp return
     
 fine:
 
@@ -144,7 +145,6 @@ fine:
     movl %eax, (%edi)
     inc %edi
     jmp tappo
-
 
 dividi:
     movl $0, %edx
@@ -158,6 +158,6 @@ dividi:
 tappo:
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
 
-
+return:
 ret #fine del programma
 
