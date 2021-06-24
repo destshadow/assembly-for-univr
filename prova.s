@@ -25,7 +25,9 @@ main_loop:
     jnz spazio
 
     push %eax
-    jmp main_loop
+cmpb $0, (%esi)
+jz fine
+jnz main_loop
 
     torno_negato:
     movl (%esi), %eax
