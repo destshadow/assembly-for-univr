@@ -73,8 +73,14 @@ segno:
     jz divisione
 
     #fare un controllo in piu per vedere se è uno spazio così ci togliamo tutti i dubbi così controllo anche se ci sono caratteri strani
+    cmpb $32, (%esi)
+    jz next
 
-    jmp errore #no senno da errori orrendi
+    jmp errore 
+
+next:
+    inc %esi
+    jmp main_loop
 
 addizione:
     popl %ebx 
