@@ -17,13 +17,20 @@ main_loop:
     jl segno
 
     torno:
-    xor %eax, %eax              #non salviamo il valore nello stack mannagia a cristo
+    xor %eax, %eax              #non salviamo il valore nello stack 
+
+    xor %ecx, %ecx
+    movl $48, %ecx
+    
     movl (%esi), %eax
 
     inc %esi
     cmpb $32, (%esi)        #spazio
     jnz spazio
+    
     push %eax
+    
+    addl $49, %ecx
     jz main_loop
 
     
@@ -35,6 +42,10 @@ jnz main_loop
     torno_negato:
 
     xor %eax, %eax
+    
+    xor %ecx, %ecx
+    movl $48, %ecx
+
     movl (%esi), %eax
 
     inc %esi
@@ -42,6 +53,9 @@ jnz main_loop
     jnz spazio
     neg %eax
     push %eax
+
+    addl $49, %ecx
+
     jz main_loop
 
     
@@ -92,6 +106,9 @@ addizione:
     addl %ebx, %eax
     pushl %eax
     inc %esi
+
+    subl $49, %ecx
+
     jmp controllo_fine_stringa
 
 sottrazione:
@@ -99,7 +116,9 @@ sottrazione:
     popl %eax
     subl %ebx, %eax
     pushl %eax
-    #inc %esi
+
+    subl $49, %ecx
+
     jmp controllo_fine_stringa
 
 moltiplicazione:
@@ -108,35 +127,52 @@ moltiplicazione:
     popl %eax
     imul %ebx               #eax moltiplicato con il regitro datogli
     pushl %eax
+
+    subl $49, %ecx
+
     inc %esi
     jmp controllo_fine_stringa
 
 divisione:
+    #da controllare se il numeratore è negativo
     movl $0 , %edx
     popl %ebx 
     popl %eax
     idiv %ebx 
     pushl %eax
+
+    subl $49, %ecx
+
     inc %esi
     jmp controllo_fine_stringa
 
 negativo:
     inc %esi
     cmpb $32, (%esi)           #spazio
-    jle sottrazione             #salta anche se è \0
+    jme sottrazione             #salta anche se è \0
     jmp torno_negato
-
+    cmpb $53, (%esi)
+    jg errore
 
 spazio:
+    cmpb $48 , (%esi)
+    jl errore
+    cmpb $57 ,(%esi)
+    jg errore
     imul $10, %eax       #$10?? me sa che va con $
     addl (%esi), %eax
     inc %esi
     cmpb $32, (%esi)        #spazio
     jnz spazio
     pushl %eax
+
+    addl $49, %ecx
+    
     jz main_loop
 
 errore:
+    #prima di andare qui lo stack è pulito o va sempre in errore?
+    #contiamo tutte le push su ecx e poi facciamo tot pop decrementando ogni volta, gg problema risolveggiuto
     movl $73, (%edi)        #scrivo I in edi
     inc %edi                #incremento di 1 edi
     movl $110, (%edi)        #scrivo n in edi
@@ -163,19 +199,28 @@ fine:
     #jge dividi
 
     #movl %eax, (%edi)
-    #inc %edi
-    movl $97, (%edi)
+    popl %eax   #un vecchio saggio disse: dopo una push ci vuole una pop 
+
+    cmpl $0, %eax
+    jl aggiungi_meno 
     
+fine2:
+
+    cmp $10, %eax
+    jge dividi
+
+    movl %eax, (%edi)
+
     jmp tappo
 
-dividi:
-    movl $0, %edx
-    movl $10, %ebx
+dividi:# da finire
+    movl $0 , %edx
+    idiv $10
+    movl %edx , (%edi)
+    cmpb $0 , %eax #da errore
+    jz tappo 
+    imul 
 
-    divl %ebx               #divido per ebx (10) il numero ottenuto
-    movl %edx, (%edi)       #salvo il resto della divisione
-    inc %edi
-    jmp fine
 
 tappo:
     inc %edi
@@ -184,3 +229,6 @@ tappo:
 return:
 ret #fine del programma
 
+aggiungi_meno:
+    movl $45, (%edi)
+    jmp fine2
