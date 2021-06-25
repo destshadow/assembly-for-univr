@@ -17,30 +17,34 @@ main_loop:
     jl segno
 
     torno:
-
+    xor %eax, %eax              #non salviamo il valore nello stack mannagia a cristo
     movl (%esi), %eax
 
     inc %esi
     cmpb $32, (%esi)        #spazio
     jnz spazio
+    push %eax
     jz main_loop
 
-    push %eax
+    
     
 cmpb $0, (%esi)
 jz fine
 jnz main_loop
 
     torno_negato:
+
+    xor %eax, %eax
     movl (%esi), %eax
 
     inc %esi
     cmpb $32, (%esi)        #spazio
     jnz spazio
-    jz main_loop
-
     neg %eax
     push %eax
+    jz main_loop
+
+    
 
 cmpb $0, (%esi)
 jz fine
@@ -73,7 +77,7 @@ segno:
     jz divisione
 
     #fare un controllo in piu per vedere se è uno spazio così ci togliamo tutti i dubbi così controllo anche se ci sono caratteri strani
-    cmpb $32, (%esi)
+    cmpb $32, (%esi)        #spazio
     jz next
 
     jmp errore 
@@ -87,6 +91,7 @@ addizione:
     popl %eax
     addl %ebx, %eax
     pushl %eax
+    inc %esi
     jmp main_loop
 
 sottrazione:
@@ -94,6 +99,7 @@ sottrazione:
     popl %eax
     subl %ebx, %eax
     pushl %eax
+    inc %esi
     jmp main_loop
 
 moltiplicazione:
@@ -102,6 +108,7 @@ moltiplicazione:
     popl %eax
     imul %ebx               #eax moltiplicato con il regitro datogli
     pushl %eax
+    inc %esi
     jmp main_loop
 
 divisione:
@@ -110,20 +117,23 @@ divisione:
     popl %eax
     idiv %ebx 
     pushl %eax
+    inc %esi
     jmp main_loop
 
 negativo:
     inc %esi
-    cmpb $32, (%esi)
-    je sottrazione       
+    cmpb $32, (%esi)           #spazio
+    jle sottrazione             #salta anche se è \0
     jmp torno_negato
 
 
 spazio:
     imul $10, %eax       #$10?? me sa che va con $
+    addl (%esi), %eax
     inc %esi
     cmpb $32, (%esi)        #spazio
     jnz spazio
+    pushl %eax
     jz main_loop
 
 errore:
@@ -149,11 +159,13 @@ fine:
 
     #salvataggio variabili su edi
 
-    cmp $10, %eax
-    jge dividi
+    #cmp $10, %eax
+    #jge dividi
 
-    movl %eax, (%edi)
-    inc %edi
+    #movl %eax, (%edi)
+    #inc %edi
+    movl $97, (%edi)
+    
     jmp tappo
 
 dividi:
@@ -166,6 +178,7 @@ dividi:
     jmp fine
 
 tappo:
+    inc %edi
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
 
 return:

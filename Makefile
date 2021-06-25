@@ -22,7 +22,7 @@ all2:
 	gcc -c main.c -o obj/main.o
 	gcc -m32 -elf_i386 obj/main.o obj/postfix.o -o bin/prova
 
-run: clear all exec
+#run: clear all exec
 
 all3:
 	gcc -m32 -g main.c src/postfix.s -o test/postfix
