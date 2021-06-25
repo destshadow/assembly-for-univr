@@ -45,7 +45,7 @@ jnz main_loop
     jz main_loop
 
     
-
+controllo_fine_stringa:
 cmpb $0, (%esi)
 jz fine
 jnz main_loop
@@ -92,15 +92,15 @@ addizione:
     addl %ebx, %eax
     pushl %eax
     inc %esi
-    jmp main_loop
+    jmp controllo_fine_stringa
 
 sottrazione:
     popl %ebx
     popl %eax
     subl %ebx, %eax
     pushl %eax
-    inc %esi
-    jmp main_loop
+    #inc %esi
+    jmp controllo_fine_stringa
 
 moltiplicazione:
     movl $0 , %edx
@@ -109,7 +109,7 @@ moltiplicazione:
     imul %ebx               #eax moltiplicato con il regitro datogli
     pushl %eax
     inc %esi
-    jmp main_loop
+    jmp controllo_fine_stringa
 
 divisione:
     movl $0 , %edx
@@ -118,7 +118,7 @@ divisione:
     idiv %ebx 
     pushl %eax
     inc %esi
-    jmp main_loop
+    jmp controllo_fine_stringa
 
 negativo:
     inc %esi
