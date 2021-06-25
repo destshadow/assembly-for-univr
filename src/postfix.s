@@ -217,7 +217,7 @@ dividi:# da finire
     movl $0 , %edx
     idiv $10
     movl %edx , (%edi)
-    cmpb $0 , %eax #da errore
+    cmpl $0 , %eax #da errore
     jz tappo 
     imul 
 
