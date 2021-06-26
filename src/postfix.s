@@ -207,11 +207,11 @@ fine:
     jmp dividi
   
 dividi:
-    div %ebx               #divido eax per 10 (ebx)    non gli piace
-    pushl %edx              #pusho il resto
-    xor %edx ,%edx          
+    idiv %bl              #divido eax per 10 (ebx)    non gli piace
+    pushb %ah            #pusho il resto
+    xor %ah,%ah         
     inc %ecx                #incremento di 1 ecx
-    cmpl $0 ,%eax           
+    cmpb $0 ,%al           
     jz stampa
     jnz dividi
     jl aggiungi_meno
