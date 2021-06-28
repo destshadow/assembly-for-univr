@@ -202,7 +202,7 @@ spazio_negato:
     addl %edx, %eax          #sottraiamo 48
     subl $48, %eax
     inc %esi
-    #ora è da controllare spazio
+    
     cmpb $32, (%esi)
     jnz spazio_negato
     
