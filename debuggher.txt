@@ -2,3 +2,6 @@
 2) break main_loop (breakpoint alla label)
 3) run
 3) usare "step" per andare avanti
+
+
+ info registers eax <- mostra l'indirizzo e il contenuto di eax

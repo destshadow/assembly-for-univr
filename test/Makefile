@@ -1,2 +1,2 @@
 run: 
-	./postfix in_1.txt out_1.txt
+	./postfix in_3.txt out_3.txt

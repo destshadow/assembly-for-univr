@@ -12,14 +12,17 @@ postfix:
 
 main_loop:
 
-    cmpb $48, (%esi)
+    cmpb $48, (%esi)        #qui funziona il controllo sul numero in esi 
     jge controllo       
     jl segno
 
     torno:
     xor %eax, %eax              #non salviamo il valore nello stack 
-
-    movl (%esi), %eax
+    xor %edx, %edx
+    
+    movb (%esi), %dl
+    movl %edx, %eax
+    subl $48, %eax              #sottraend 48 trovo il numero che ci serve
 
     inc %esi
     cmpb $32, (%esi)        #spazio
@@ -33,12 +36,15 @@ jmp main_loop
     torno_negato:
 
     xor %eax, %eax
+    xor %edx, %edx
 
-    movl (%esi), %eax
+    movb (%esi), %dl
+    movl %edx, %eax
+    subl $48, %eax
 
     inc %esi
     cmpb $32, (%esi)        #spazio
-    jnz spazio
+    jnz spazio_negato
 
     neg %eax
     push %eax
@@ -93,8 +99,8 @@ next:
     jmp main_loop
 
 addizione:
-    popl %ebx 
-    popl %eax
+    popl %eax 
+    popl %ebx
     addl %ebx, %eax
     pushl %eax
     inc %esi
@@ -104,10 +110,10 @@ addizione:
     jmp controllo_fine_stringa
 
 sottrazione:
-    popl %ebx
     popl %eax
-    subl %ebx, %eax
-    pushl %eax
+    popl %ebx
+    subl %eax, %ebx
+    pushl %ebx              #perchè abbiamo un numero strano?
 
     subl $49, %ecx
 
@@ -115,8 +121,8 @@ sottrazione:
 
 moltiplicazione:
     movl $0 , %edx
-    popl %ebx
     popl %eax
+    popl %ebx
     imul %ebx               #eax moltiplicato con il regitro datogli
     pushl %eax
 
@@ -127,6 +133,7 @@ moltiplicazione:
 
 divisione:
     #da controllare se il numeratore è negativo
+    xor %edx , %edx
     movl $0 , %edx
     popl %ebx 
     popl %eax
@@ -154,17 +161,52 @@ spazio:
     cmpb $57 ,(%esi)
     jg errore
 
+
+    #dobbiamo prima salvare il valore convertirlo in numero e li salvarlo in eax? così non dovremmo avere errori di conversione
+    xor %edx, %edx          #pulisco edx
+
     imul $10, %eax          #$10?? me sa che va con $
-    addl (%esi), %eax
+
+    movb (%esi), %dl        #spostiamo il numero in al, grande errore siummico
+    addl %edx, %eax
+
+    subl $48, %eax          #sottraiamo 48
+    
     inc %esi
     #ora è da controllare spazio
     cmpb $32, (%esi)
+    
     jnz spazio
     
     pushl %eax
     addl $49, %ecx
     
     jmp main_loop
+
+spazio_negato:
+    cmpb $48 , (%esi)       #controlla anche se è uno spazio piu o meno
+    jl errore
+
+    cmpb $57 ,(%esi)
+    jg errore
+
+    xor %edx, %edx
+
+    imul $10, %eax          #$10?? me sa che va con $
+    movb (%esi), %dl        #spostiamo il numero in al, grande errore siummico
+    addl %edx, %eax          #sottraiamo 48
+    subl $48, %eax
+    inc %esi
+    #ora è da controllare spazio
+    cmpb $32, (%esi)
+    jnz spazio_negato
+    
+    neg %eax
+    pushl %eax
+    addl $49, %ecx
+    
+    jmp main_loop
+
 
 errore:
     #prima di andare qui lo stack è pulito o va sempre in errore?
@@ -198,27 +240,33 @@ elimina:
 fine:
 
     #salvataggio variabili su edi
-
-    popl %eax   
+    xor %eax , %eax
+    popl %eax   #non è che stiamo facendo un altra pop di eax? <- mi dava qui l'errore strange
     xor %ecx , %ecx
     xor %edx , %edx
-    xor %ebx , %ebx  
+    xor %ebx , %ebx    
+
+init:
+
     movl $10 , %ebx
-    jmp dividi
+    cmp   $10, %eax		# confronta 10 con il contenuto di %eax
+    jge dividi		    # salta all'etichetta dividi se %eax e'
+				        # maggiore o uguale a 10
+    pushl %eax		    # salva nello stack il contenuto di %eax
+    inc   %ecx	
+    jmp stampa
   
 dividi:
-    idiv %bl              #divido eax per 10 (ebx)    non gli piace
-    pushb %ah            #pusho il resto
-    xor %ah,%ah         
+    div %ebx             #divido eax per 10 (ebx)    non gli piace
+    pushl %edx           #pusho il resto
+    xor %edx, %edx        
     inc %ecx                #incremento di 1 ecx
-    cmpb $0 ,%al           
-    jz stampa
-    jnz dividi
-    jl aggiungi_meno
+    jmp init
      
 stampa: 
-   popl %edx                #prendo il numero e lo metto in edi
-   movl %edx,(%edi)
+   popl %eax
+   addl $48 , %eax                #converto in carattere
+   movl %eax,(%edi)
    dec %ecx                 #decremento ecx
    inc %edi                 
    cmpl $0 , %ecx           #non ho piu cifre da aggiungere
