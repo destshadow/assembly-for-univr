@@ -2,15 +2,18 @@
     .globl postfix
     .type postfix, @function
 postfix:
-    
+
+
     movl 4(%esp), %esi      #primo puntatore frase in input; source index
     movl 8(%esp), %edi      #secondo puntatore frase in output; destination index
-
+    
     cmpb $0, (%esi)         #devo comparare il byte, prima va l'immediato e poi l'indirizzamento a memoria
     jnz main_loop
     jz errore
 
 main_loop:
+
+    xor %ecx, %ecx
 
     cmpb $48, (%esi)        #qui funziona il controllo sul numero in esi 
     jge controllo       
@@ -137,6 +140,8 @@ divisione:
     movl $0 , %edx
     popl %ebx 
     popl %eax
+    cmpl $0 , %eax
+    jl errore
     idiv %ebx 
     pushl %eax
 
@@ -212,7 +217,7 @@ errore:
     #prima di andare qui lo stack è pulito o va sempre in errore?
     #contiamo tutte le push su ecx e poi facciamo tot pop decrementando ogni volta, gg problema risolveggiuto
     cmpl $0, %ecx
-    jg elimina
+    jge elimina
 
     movl $73, (%edi)        #scrivo I in edi
     inc %edi                #incremento di 1 edi
@@ -251,7 +256,8 @@ init:
     movl $10 , %ebx
     cmp   $10, %eax		# confronta 10 con il contenuto di %eax
     jge dividi		    # salta all'etichetta dividi se %eax e'
-				        # maggiore o uguale a 10
+	cmp $0 , %eax	        # maggiore o uguale a 10
+    jl num_neg
     pushl %eax		    # salva nello stack il contenuto di %eax
     inc   %ecx	
     jmp stampa
@@ -262,11 +268,19 @@ dividi:
     xor %edx, %edx        
     inc %ecx                #incremento di 1 ecx
     jmp init
-     
+
+dividi_2:
+
+    div %ebx             #divido eax per 10 (ebx)    non gli piace
+    pushl %edx           #pusho il resto
+    xor %edx, %edx        
+    inc %ecx                #incremento di 1 ecx
+    jmp aggiungi_meno 
+
 stampa: 
    popl %eax
    addl $48 , %eax                #converto in carattere
-   movl %eax,(%edi)
+   movb %al,(%edi)
    dec %ecx                 #decremento ecx
    inc %edi                 
    cmpl $0 , %ecx           #non ho piu cifre da aggiungere
@@ -278,12 +292,27 @@ tappo:
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
 
 return:
-ret #fine del programma
+    ret #fine del programma
+
+num_neg:
+
+    neg %eax
+
+    cmp   $10, %eax		# confronta 10 con il contenuto di %eax
+    jge dividi_2
 
 aggiungi_meno:
+     
+    cmp   $10, %eax		# confronta 10 con il contenuto di %eax
+    jge dividi_2
 
-    movl $45, %eax
     pushl %eax
     inc %ecx
+
+    movl $45 , %eax
+  
+    movl %eax , (%edi)
+    inc %edi
+
     jmp stampa
     
