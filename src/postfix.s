@@ -1,8 +1,8 @@
 .section .text
     .globl postfix
     .type postfix, @function
-postfix:
 
+postfix:
 
     movl 4(%esp), %esi      #primo puntatore frase in input; source index
     movl 8(%esp), %edi      #secondo puntatore frase in output; destination index
@@ -20,16 +20,16 @@ main_loop:
     jl segno
 
     torno:
-    xor %eax, %eax              #non salviamo il valore nello stack 
+    xor %eax, %eax          #non salviamo il valore nello stack 
     xor %edx, %edx
     
     movb (%esi), %dl
     movl %edx, %eax
-    subl $48, %eax              #sottraend 48 trovo il numero che ci serve
+    subl $48, %eax          #sottraend 48 trovo il numero che ci serve
 
     inc %esi
     cmpb $32, (%esi)        #spazio
-    jnz spazio              #errore?
+    jnz spazio              
     
     push %eax
     addl $49, %ecx
@@ -37,6 +37,12 @@ main_loop:
 jmp main_loop
 
     torno_negato:
+
+    cmpb $48 , (%esi)
+    jl errore
+    
+    cmpb $57 , (%esi)
+    jg errore
 
     xor %eax, %eax
     xor %edx, %edx
@@ -58,22 +64,17 @@ jmp main_loop
 
     
 controllo_fine_stringa:
-cmpb $0, (%esi)
-jz fine
-jnz main_loop
-#fine main loop
+    cmpb $10, (%esi)
+    jz next
+    cmpb $0, (%esi)
+    jz fine
+    jnz main_loop
+    #fine main loop
 
 controllo:
     cmpb $57, (%esi)
     jle torno
     jg errore
-
-
-controllo_negato:
-    cmpb $57, (%esi)
-    jle torno_negato
-    jg errore
-
 
 segno:
     cmpb $43, (%esi)        #+
@@ -88,14 +89,16 @@ segno:
     cmpb $47, (%esi)        #/
     jz divisione
 
-    #fare un controllo in piu per vedere se è uno spazio così ci togliamo tutti i dubbi così controllo anche se ci sono caratteri strani
     cmpb $32, (%esi)        #spazio
     jz next
 
-    cmpb $0, (%esi)
+    cmpb $0, (%esi)         #carattere di fine stringa
     jz fine
 
-    jmp errore 
+    cmpb $10, (%esi)        #carattere di \n
+    jz next
+
+    jmp errore              #se non è nessuno dei precedenti vado in errore
 
 next:
     inc %esi
@@ -116,7 +119,7 @@ sottrazione:
     popl %eax
     popl %ebx
     subl %eax, %ebx
-    pushl %ebx              #perchè abbiamo un numero strano?
+    pushl %ebx              
 
     subl $49, %ecx
 
@@ -135,28 +138,32 @@ moltiplicazione:
     jmp controllo_fine_stringa
 
 divisione:
-    #da controllare se il numeratore è negativo
+
     xor %edx , %edx
     movl $0 , %edx
     popl %ebx 
     popl %eax
+
+    dec %ecx
+    dec %ecx
+
     cmpl $0 , %eax
     jl errore
+
     idiv %ebx 
     pushl %eax
 
-    subl $49, %ecx
+    inc %ecx
 
     inc %esi
     jmp controllo_fine_stringa
 
 negativo:
     inc %esi
-    cmpb $32, (%esi)           #spazio
+    cmpb $32, (%esi)            #spazio
     jle sottrazione             #salta anche se è \0
     jmp torno_negato
-    cmpb $53, (%esi)
-    jg errore
+   
 
 spazio:
     
@@ -166,19 +173,17 @@ spazio:
     cmpb $57 ,(%esi)
     jg errore
 
-
-    #dobbiamo prima salvare il valore convertirlo in numero e li salvarlo in eax? così non dovremmo avere errori di conversione
     xor %edx, %edx          #pulisco edx
 
-    imul $10, %eax          #$10?? me sa che va con $
+    imul $10, %eax          #10
 
-    movb (%esi), %dl        #spostiamo il numero in al, grande errore siummico
+    movb (%esi), %dl        #spostiamo il numero in al
     addl %edx, %eax
 
     subl $48, %eax          #sottraiamo 48
     
     inc %esi
-    #ora è da controllare spazio
+
     cmpb $32, (%esi)
     
     jnz spazio
@@ -197,8 +202,8 @@ spazio_negato:
 
     xor %edx, %edx
 
-    imul $10, %eax          #$10?? me sa che va con $
-    movb (%esi), %dl        #spostiamo il numero in al, grande errore siummico
+    imul $10, %eax          #$10
+    movb (%esi), %dl        #spostiamo il numero in al
     addl %edx, %eax          #sottraiamo 48
     subl $48, %eax
     inc %esi
@@ -214,8 +219,7 @@ spazio_negato:
 
 
 errore:
-    #prima di andare qui lo stack è pulito o va sempre in errore?
-    #contiamo tutte le push su ecx e poi facciamo tot pop decrementando ogni volta, gg problema risolveggiuto
+    
     cmpl $0, %ecx
     jge elimina
 
@@ -244,9 +248,9 @@ elimina:
 
 fine:
 
-    #salvataggio variabili su edi
+                            #salvataggio variabili su edi
     xor %eax , %eax
-    popl %eax   #non è che stiamo facendo un altra pop di eax? <- mi dava qui l'errore strange
+    popl %eax               
     xor %ecx , %ecx
     xor %edx , %edx
     xor %ebx , %ebx    
@@ -254,32 +258,32 @@ fine:
 init:
 
     movl $10 , %ebx
-    cmp   $10, %eax		# confronta 10 con il contenuto di %eax
-    jge dividi		    # salta all'etichetta dividi se %eax e'
+    cmp   $10, %eax		    # confronta 10 con il contenuto di %eax
+    jge dividi		        # salta all'etichetta dividi se %eax e'
 	cmp $0 , %eax	        # maggiore o uguale a 10
     jl num_neg
-    pushl %eax		    # salva nello stack il contenuto di %eax
+    pushl %eax		        # salva nello stack il contenuto di %eax
     inc   %ecx	
     jmp stampa
   
 dividi:
-    div %ebx             #divido eax per 10 (ebx)    non gli piace
-    pushl %edx           #pusho il resto
+    div %ebx                #divido eax per 10 (ebx)
+    pushl %edx              #pusho il resto
     xor %edx, %edx        
     inc %ecx                #incremento di 1 ecx
     jmp init
 
 dividi_2:
 
-    div %ebx             #divido eax per 10 (ebx)    non gli piace
-    pushl %edx           #pusho il resto
+    div %ebx                #divido eax per 10 (ebx)
+    pushl %edx              #pusho il resto
     xor %edx, %edx        
     inc %ecx                #incremento di 1 ecx
     jmp aggiungi_meno 
 
 stampa: 
    popl %eax
-   addl $48 , %eax                #converto in carattere
+   addl $48 , %eax          #converto in carattere
    movb %al,(%edi)
    dec %ecx                 #decremento ecx
    inc %edi                 
@@ -292,7 +296,7 @@ tappo:
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
 
 return:
-    ret #fine del programma
+    ret                     #fine del programma
 
 num_neg:
 
