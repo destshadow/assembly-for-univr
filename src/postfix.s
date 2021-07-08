@@ -6,14 +6,21 @@ postfix:
 
     movl 4(%esp), %esi      #primo puntatore frase in input; source index
     movl 8(%esp), %edi      #secondo puntatore frase in output; destination index
+
+    pushl %eax
+    pushl %ebx
+    pushl %ecx
+    pushl %edx
     
     cmpb $0, (%esi)         #devo comparare il byte, prima va l'immediato e poi l'indirizzamento a memoria
     jnz main_loop
     jz errore
 
+    xor %ecx, %ecx          #pulisco ecx
+
 main_loop:
 
-    xor %ecx, %ecx
+    
 
     cmpb $48, (%esi)        #qui funziona il controllo sul numero in esi 
     jge controllo       
@@ -32,7 +39,7 @@ main_loop:
     jnz spazio              
     
     push %eax
-    addl $49, %ecx
+    inc %ecx
 
 jmp main_loop
 
@@ -58,12 +65,14 @@ jmp main_loop
     neg %eax
     push %eax
 
-    addl $49, %ecx
+    inc %ecx
 
 jmp main_loop
 
     
 controllo_fine_stringa:
+    cmpb $32 , (%esi)
+    jz next
     cmpb $10, (%esi)
     jz next
     cmpb $0, (%esi)
@@ -92,17 +101,24 @@ segno:
     cmpb $32, (%esi)        #spazio
     jz next
 
-    cmpb $0, (%esi)         #carattere di fine stringa
-    jz fine
-
     cmpb $10, (%esi)        #carattere di \n
     jz next
+
+    cmpb $0, (%esi)         #carattere di fine stringa
+    jz fine
 
     jmp errore              #se non è nessuno dei precedenti vado in errore
 
 next:
     inc %esi
+    cmpb $0 , (%esi)        #fine stringa
+    jz errore 
+    cmpb $32 ,(%esi)        #spazio
+    jz errore
+    cmpb $10, (%esi)
+    jz errore
     jmp main_loop
+    
 
 addizione:
     popl %eax 
@@ -111,7 +127,7 @@ addizione:
     pushl %eax
     inc %esi
 
-    subl $49, %ecx
+    dec %ecx
 
     jmp controllo_fine_stringa
 
@@ -121,7 +137,7 @@ sottrazione:
     subl %eax, %ebx
     pushl %ebx              
 
-    subl $49, %ecx
+    dec %ecx
 
     jmp controllo_fine_stringa
 
@@ -132,7 +148,7 @@ moltiplicazione:
     imul %ebx               #eax moltiplicato con il regitro datogli
     pushl %eax
 
-    subl $49, %ecx
+    dec %ecx
 
     inc %esi
     jmp controllo_fine_stringa
@@ -149,6 +165,9 @@ divisione:
 
     cmpl $0 , %eax
     jl errore
+    
+    cmpl $0 ,%ebx 
+    je errore
 
     idiv %ebx 
     pushl %eax
@@ -189,7 +208,7 @@ spazio:
     jnz spazio
     
     pushl %eax
-    addl $49, %ecx
+    inc %ecx
     
     jmp main_loop
 
@@ -213,7 +232,7 @@ spazio_negato:
     
     neg %eax
     pushl %eax
-    addl $49, %ecx
+    inc %ecx
     
     jmp main_loop
 
@@ -221,7 +240,7 @@ spazio_negato:
 errore:
     
     cmpl $0, %ecx
-    jge elimina
+    jg elimina
 
     movl $73, (%edi)        #scrivo I in edi
     inc %edi                #incremento di 1 edi
@@ -296,6 +315,11 @@ tappo:
     movl $0, (%edi)         #scrivo 0 in edi che è anche il carattere di terminazione
 
 return:
+
+    popl %edx
+    popl %ecx
+    popl %ebx
+    popl %eax
     ret                     #fine del programma
 
 num_neg:
