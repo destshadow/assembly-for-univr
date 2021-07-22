@@ -1,9 +1,18 @@
+.section .data
+#riservo lo spazio per salvare il valore di EBP
+   EBP:
+	.long 0
+
+
 .section .text
     .globl postfix
     .type postfix, @function
-
+	
 postfix:
 
+    movl %ebp, EBP		    #salvare il valore di EBP
+    movl %esp, %ebp	            #salva in ebp il valore di esp 
+    
     movl 4(%esp), %esi      # primo puntatore frase in input; source index
     movl 8(%esp), %edi      # secondo puntatore frase in output; destination index
 
@@ -35,7 +44,7 @@ main_loop:
     movl %edx, %eax
     subl $48, %eax          # sottraendo 48 trovo il numero che ci serve
 
-    inc %esi
+    inc %esi                # inc ci spostiamo nell'array
     cmpb $32, (%esi)        # spazio
     jnz spazio              
     
@@ -122,7 +131,7 @@ next:
     
 
 addizione:
-    popl %eax 
+    popl %eax
     popl %ebx
     addl %ebx, %eax
     pushl %eax
@@ -136,7 +145,7 @@ sottrazione:
     popl %eax
     popl %ebx
     subl %eax, %ebx
-    pushl %ebx              
+    pushl %ebx
 
     dec %ecx
 
@@ -319,6 +328,7 @@ return:
     popl %ecx
     popl %ebx
     popl %eax
+    movl EBP, %ebp
     ret                     # fine del programma
 
 num_neg:
